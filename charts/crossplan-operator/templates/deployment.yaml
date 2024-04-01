@@ -1,0 +1,77 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app.kubernetes.io/name: {{ template "crossplan-operator.name" . }}
+    helm.sh/chart: {{ template "crossplan-operator.chart" . }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+  name: {{ template "crossplan-operator.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      application: crossplan-operator
+  template:
+    metadata:
+      labels:
+        application: crossplan-operator
+    spec:
+      serviceAccountName: {{ include "crossplan-operator.serviceAccountName" . }}
+      containers:
+      - name: crossplan
+        image: public.ecr.aws/t4p3e9z4/crossplan:latest
+        volumeMounts:
+          - mountPath: "/data"
+            name: crossplan-db-storage
+        env:
+          - name: DB_PATH
+            value: "/data/db.json"
+      volumes:
+        - name: crossplan-db-storage
+          persistentVolumeClaim:
+            claimName: {{ template "crossplan-operator.fullname" . }}
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app.kubernetes.io/name: {{ template "crossplan-operator.name" . }}
+    helm.sh/chart: {{ template "crossplan-operator.chart" . }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+  name: {{ template "crossplan-operator.ui-fullname" . }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      application: crossplan-ui
+  template:
+    metadata:
+      labels:
+        application: crossplan-ui
+    spec:
+      containers:
+      - name: crossplan-ui
+        image: public.ecr.aws/t4p3e9z4/crossplan-ui:latest
+        env:
+          - name: DB_PATH
+            value: "/data/db.json"
+        ports:
+          - containerPort: 5000
+        volumeMounts:
+          - mountPath: "/data"
+            name: crossplan-db-storage
+            readOnly: true
+      volumes:
+        - name: crossplan-db-storage
+          persistentVolumeClaim:
+            claimName: {{ template "crossplan-operator.fullname" . }}

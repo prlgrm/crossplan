@@ -1,0 +1,9 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: test-config-map
+  namespace: crossplan
+data:
+  tf.repo: 'https://github.com/veziak/helloworld-tf-module'
+  tf.vars: 'name="veziak"'

@@ -1,0 +1,8 @@
+apiVersion: crossplan.io/v1
+kind: TerraformClaim
+metadata:
+  name: tf-claimmm1
+  namespace: crossplan
+spec:
+  configMapName: test-config-map
+
